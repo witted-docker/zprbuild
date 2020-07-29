@@ -1,0 +1,36 @@
+FROM debian:buster
+RUN dpkg --add-architecture armhf
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sshpass git openssh-client zip xz-utils wget ca-certificates expect-dev \
+    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+    libzmq3-dev:armhf libboost-dev:armhf libboost-system-dev:armhf
+
+ENV CC=arm-linux-gnueabihf-gcc
+ENV CXX=arm-linux-gnueabihf-g++
+
+# Install go
+RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in  \
+		  amd64) goRelArch='linux-amd64' ;; \
+      i386)  goRelArch='linux-386' ;; \
+    esac; \
+    wget -q -O go.tgz https://golang.org/dl/go1.14.2.${goRelArch}.tar.gz '
+RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
+ENV GOPATH /home/zpr/go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV GOARCH arm
+
+# Install nim
+RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in \
+        amd64) nimRelArch='x64' ;; \
+        i386)  nimRelArch='x32' ;; \
+      esac; \
+      wget -q -O nim.tar.xz https://nim-lang.org/download/nim-1.2.0-linux_${nimRelArch}.tar.xz'
+
+RUN tar -C /usr/local -xJf nim.tar.xz  && mv /usr/local/nim* /usr/local/nim && rm nim.tar.xz
+ENV PATH /bin:/usr/local/nim/bin:$PATH
+
+
+# Clean files
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
