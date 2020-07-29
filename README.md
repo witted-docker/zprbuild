@@ -19,5 +19,5 @@ RUN apt-get update && && apt-get install -y --no-install-recommends \
   
   
   
-© Copyright 2019 Witted Srl - All Rights Reserved
+© Copyright 2020 Witted Srl - All Rights Reserved
 
