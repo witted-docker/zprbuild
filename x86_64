@@ -1,7 +1,7 @@
 FROM debian:buster
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sshpass git openssh-client zip xz-utils wget ca-certificates expect-dev \
-    build-essential \
+    build-essential pkg-config \
     libzmq3-dev libboost-dev libboost-system-dev
 
 ENV CC=gcc
@@ -16,19 +16,15 @@ RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" i
 RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
 ENV GOPATH /home/zpr/go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV CGO_ENABLED=1
 
-# Install nim
-RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in \
-        amd64) nimRelArch='x64' ;; \
-        i386)  nimRelArch='x32' ;; \
-      esac; \
-      wget -q -O nim.tar.xz https://nim-lang.org/download/nim-1.2.0-linux_${nimRelArch}.tar.xz'
+RUN go get github.com/pebbe/zmq4
 
-RUN tar -C /usr/local -xJf nim.tar.xz  && mv /usr/local/nim* /usr/local/nim && rm nim.tar.xz
-ENV PATH /bin:/usr/local/nim/bin:$PATH
+
 
 
 # Clean files
+RUN chmod 777 -R /home
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 

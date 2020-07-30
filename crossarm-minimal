@@ -2,12 +2,14 @@ FROM debian:buster
 RUN dpkg --add-architecture armhf
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sshpass git openssh-client zip xz-utils wget ca-certificates expect-dev \
-    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config \
     libzmq3-dev:armhf libboost-dev:armhf libboost-system-dev:armhf
 
 ENV CC=arm-linux-gnueabihf-gcc
 ENV CXX=arm-linux-gnueabihf-g++
+ENV PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
 
 
 # Clean files
+RUN chmod 777 -R /home
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

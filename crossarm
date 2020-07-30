@@ -2,11 +2,13 @@ FROM debian:buster
 RUN dpkg --add-architecture armhf
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sshpass git openssh-client zip xz-utils wget ca-certificates expect-dev \
-    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config \
     libzmq3-dev:armhf libboost-dev:armhf libboost-system-dev:armhf
 
 ENV CC=arm-linux-gnueabihf-gcc
 ENV CXX=arm-linux-gnueabihf-g++
+ENV PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+
 
 # Install go
 RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in  \
@@ -18,19 +20,16 @@ RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
 ENV GOPATH /home/zpr/go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 ENV GOARCH arm
+ENV CGO_ENABLED=1
+ENV CC_FOR_TARGET=arm-linux-gnueabihf-gcc
+ENV CXX_FOR_TARGET=arm-linux-gnueabihf-g++
 
-# Install nim
-RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in \
-        amd64) nimRelArch='x64' ;; \
-        i386)  nimRelArch='x32' ;; \
-      esac; \
-      wget -q -O nim.tar.xz https://nim-lang.org/download/nim-1.2.0-linux_${nimRelArch}.tar.xz'
+RUN go get github.com/pebbe/zmq4
 
-RUN tar -C /usr/local -xJf nim.tar.xz  && mv /usr/local/nim* /usr/local/nim && rm nim.tar.xz
-ENV PATH /bin:/usr/local/nim/bin:$PATH
 
 
 # Clean files
+RUN chmod 777 -R /home
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
