@@ -1,0 +1,35 @@
+FROM debian:buster
+RUN dpkg --add-architecture arm64
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sshpass git openssh-client zip xz-utils wget ca-certificates expect-dev \
+    gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config \
+    libzmq3-dev:arm64 libboost-dev:arm64 libboost-system-dev:arm64
+
+ENV CC=aarch64-linux-gnu-gcc
+ENV CXX=aarch64-linux-gnu-g++
+ENV PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig
+
+
+# Install go
+RUN bash -c 'dpkgArch="$(dpkg --print-architecture)" && case "${dpkgArch##*-}" in  \
+		  amd64) goRelArch='linux-amd64' ;; \
+      i386)  goRelArch='linux-386' ;; \
+    esac; \
+    wget -q -O go.tgz https://golang.org/dl/go1.14.2.${goRelArch}.tar.gz '
+RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
+ENV GOPATH /home/zpr/go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV GOARCH arm64
+ENV CGO_ENABLED=1
+ENV CC_FOR_TARGET=aarch64-linux-gnu-gcc
+ENV CXX_FOR_TARGET=aarch64-linux-gnu-g++
+
+RUN go get github.com/pebbe/zmq4
+
+
+
+# Clean files
+RUN chmod 777 -R /home
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
