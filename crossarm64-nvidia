@@ -1,8 +1,13 @@
 FROM ubuntu:bionic
+
+# ADDING ARM64 SUPPORT
+# Add arm64 architecture
 RUN dpkg --add-architecture arm64
+# Set existing repos as amd64
 RUN sed 's/deb /deb [arch=amd64] /g' /etc/apt/sources.list > /etc/apt/sources.list.save
 RUN rm /etc/apt/sources.list
 RUN mv /etc/apt/sources.list.save /etc/apt/sources.list
+# Add new arm64 repos
 RUN echo  "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic main restricted\n \ 
 deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic-updates main restricted\n \ 
 deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic universe\n \ 
@@ -13,7 +18,7 @@ deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic-backports main rest
 deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic-security main restricted\n \ 
 deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic-security universe\n \ 
 deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports bionic-security multiverse" >> /etc/apt/sources.list
-RUN cat /etc/apt/sources.list
+
 ENV TZ=Europe/Rome
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -41,8 +46,6 @@ ENV CC_FOR_TARGET=aarch64-linux-gnu-gcc
 ENV CXX_FOR_TARGET=aarch64-linux-gnu-g++
 
 RUN go get github.com/pebbe/zmq4
-
-
 
 # Clean files
 RUN chmod 777 -R /home
